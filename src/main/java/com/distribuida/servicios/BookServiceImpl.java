@@ -51,13 +51,7 @@ public class BookServiceImpl implements BookService{
                     .mapToBean(Book.class)
                     .list();
         }
-        //return books.get(0);
-
-
-
-
-
-
+        //return books.get(0)
         if(books.size() > 0){
             arrayBuilder.add(Json.createObjectBuilder().add("id", books.get(0).getId()).add("isbn", books.get(0).getIsbn())
                     .add("title", books.get(0).getTitle()).add("author", books.get(0).getAuthor())
@@ -81,28 +75,84 @@ public class BookServiceImpl implements BookService{
     }
 
     public Book create(Book book) {
-       book.setId(nextId++);
-        books.add(book);
-        return book;
 
+        String sql = "INSERT INTO \"books\" ( \"isbn\",\"title\",\"author\",\"price\") VALUES (:isbn,:title,:author, :price)" ;
+        try (Handle handle = dbConfig.test()) {
+            handle.createUpdate(sql)
+                    .bindBean(book)
+                    .execute();
+        }
+
+    return book;
 
     }
 
-    public Book update(Book book) {
-        Book b= null;
+    public JsonObject update(Book book) {
+        /*Book b= null;
         for (int i = 0; i < books.size(); i++) {
             if (books.get(i).getId() == book.getId()) {
                 books.set(i,book);
                b= book;
             }
         }
-        return b;
+        return b;*/
+        JsonObject json;
+        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+        int count = 0;
+        JsonObject b = findById(book.getId());
+        if (5 == book.getId()) {
+            try (Handle handle = dbConfig.test()) {
+                count = handle.createUpdate("UPDATE books set isbn = :isbn  , title = :title, author= :author, price = :price WHERE id = " + book.getId())
+
+                        .bind("isbn", book.getIsbn())
+                        .bind("title", book.getTitle())
+                        .bind("author", book.getAuthor())
+                        .bind("price", book.getPrice())
+                        .execute();
+            }
+            if (count > 0) {
+
+                arrayBuilder.add(Json.createObjectBuilder().add("id", book.getId()).add("isbn", book.getIsbn())
+                        .add("title", book.getTitle()).add("author", book.getAuthor())
+                        .add("price", book.getPrice()).build());
+                json = Json.createObjectBuilder()
+                        .add("Editado con exito", arrayBuilder.build())
+                        .build();
+            } else {
+                json = Json.createObjectBuilder()
+                        .add("msg", "No existe registros")
+                        .build();
+            }
+
+
+
+        } else {
+            json = Json.createObjectBuilder()
+                    .add("msg", "No existe registros")
+                    .build();
+        }
+        return json;
     }
 
-    public void delete(Integer id) {
-      //  Book book = findById(id);
-     //   if (book != null) {
-      //      books.remove(book);
-       // }
+    public JsonObject delete(Integer id) {
+        JsonObject json = null;
+        String sql = "DELETE FROM books WHERE id = :id" ;
+        try (Handle handle = dbConfig.test()) {
+           int count = handle.createUpdate(sql)
+                    .bind("id", id)
+                    .execute();
+if (count>0){
+    json = Json.createObjectBuilder()
+            .add("msg", "Borrado con exito")
+            .build();
+}else {
+    json = Json.createObjectBuilder()
+            .add("msg", "No existe registros")
+            .build();
+}
+
+        }
+
+        return json;
     }
 }

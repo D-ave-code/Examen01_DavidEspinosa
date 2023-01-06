@@ -33,7 +33,7 @@ public class BookRest {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAll() {
 
-        return Response.ok(bookService.findAll()).status(Response.Status.CREATED).build();
+        return Response.ok(bookService.findAll()).build();
     }
 
     @POST
@@ -49,11 +49,8 @@ public class BookRest {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("id") Integer id, Book book) {
          book.setId(id);
-        Book updatedBook = bookService.update(book);
-        if (updatedBook == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(updatedBook).build();
+         return Response.ok(bookService.update(book)).build();
+
     }
 
     @DELETE
@@ -61,8 +58,8 @@ public class BookRest {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response delete(@PathParam("id") Integer id) {
-        bookService.delete(id);
-        return Response.noContent().build();
+
+        return Response.ok(bookService.delete(id)).build();
     }
 
 

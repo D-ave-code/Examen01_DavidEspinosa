@@ -1,6 +1,8 @@
 package com.distribuida.config;
 
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -11,10 +13,13 @@ import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jdbi.v3.core.Handle;
 import org.jdbi.v3.core.Jdbi;
+import org.postgresql.ds.PGSimpleDataSource;
 
 
 @ApplicationScoped
 public class DbConfig {
+
+    private HikariDataSource dataSource;
     @Inject
     @ConfigProperty(name="db.user")
     String dbUser;
@@ -29,30 +34,19 @@ public class DbConfig {
 
     @PostConstruct
     public  void init(){
-    System.out.println("*********************postcosnt");
-    /*API DE CONFIGURACION PRIMERA OPCION en cualquier clase*/
-    /* Config config =  ConfigProvider.getConfig();
-    String user = config.getValue("db.user", String.class);
-    String password = config.getValue("db.password", String.class);
-    String url = config.getValue("db.url", String.class);
-    System.out.println(user);
-    System.out.println(password);
-    System.out.println(url);*/
-    /*FIN*/
-    /*SEGUNDA OPCION solo componentes cdi*/
-    System.out.println("op2"+dbUser);
-    System.out.println("op2"+dbPassword);
-    System.out.println("op2"+dbUrl);
 
-        jdbi = Jdbi.create(dbUrl,dbUser,dbPassword);
-
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(dbUrl);
+        config.setMaximumPoolSize(7);
+        config.setUsername(dbUser);
+        config.setPassword(dbPassword);
+        dataSource = new HikariDataSource(config);
+        jdbi = Jdbi.create(dataSource);
 
 }
 @ApplicationScoped
 @Produces
 public Handle test(){
-
     return jdbi.open();
 }
-
 }
